@@ -1,0 +1,30 @@
+name: StandKnife-Build
+on:
+  workflow_dispatch: # Позволяет запустить сборку вручную
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@v1.3.1
+
+      - name: Build Android
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: 2019.4.21f1
+          targetPlatform: Android
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: StandKnife-APK
+          path: build/Android
+          
