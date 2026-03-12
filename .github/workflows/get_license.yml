@@ -1,19 +1,20 @@
-name: Get Unity ALF
+name: Get ALF Manual
 on: workflow_dispatch
 jobs:
   get-alf:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Request ALF
-        id: get-alf
-        # Используем официальный экшен версии 4, он стабильнее
-        uses: game-ci/unity-request-activation-file@v2
-
-      - name: Upload ALF
-        uses: actions/upload-artifact@v4
-        with:
-          name: Unity-Activation-File
-          path: ./*.alf
+      - name: Install Unity and Get ALF
+        run: |
+          # Устанавливаем официальный загрузчик Unity
+          wget -qO - https://hub.unity3d.com/linux/keys/Unity_Technologies_ApS.asc | gpg --dearmor | sudo tee /usr/share/keyrings/Unity_Technologies_ApS.gpg > /dev/null
+          sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/Unity_Technologies_ApS.gpg] https://hub.unity3d.com/linux/repos/deb stable main" > /etc/apt/sources.list.d/unityhub.list'
+          sudo apt-get update && sudo apt-get install unity-editor-2022.3.7f1 -y
+          
+          # Запускаем Unity один раз, чтобы она создала файл активации
+          /opt/unity/Editor/Unity -batchmode -createManualActivationFile -quit -nographics || true
+          
+          # Выводим содержимое файла прямо в лог, чтобы ты его скопировал
+          echo "--- НАЧАЛО ФАЙЛА ALF ---"
+          cat *.alf
+          echo "--- КОНЕЦ ФАЙЛА ALF ---"
