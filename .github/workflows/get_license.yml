@@ -1,15 +1,19 @@
-name: Force Get ALF
+name: Get Unity ALF
 on: workflow_dispatch
 jobs:
   get-alf:
     runs-on: ubuntu-latest
-    container: unitygroup/unity:2022.3.7f1-base-1.0.1 # Используем чистый образ Unity
     steps:
-      - name: Generate ALF
-        run: |
-          /opt/unity/Editor/Unity -quit -batchmode -nographics -createManualActivationFile || true
-          mv *.alf activation_file.alf
-      - uses: actions/upload-artifact@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Request ALF
+        id: get-alf
+        # Используем официальный экшен версии 4, он стабильнее
+        uses: game-ci/unity-request-activation-file@v2
+
+      - name: Upload ALF
+        uses: actions/upload-artifact@v4
         with:
-          name: manual-activation-file
-          path: activation_file.alf
+          name: Unity-Activation-File
+          path: ./*.alf
