@@ -1,4 +1,4 @@
-name: StandKnife Final Victory
+name: StandKnife Final
 on:
   workflow_dispatch:
 
@@ -6,31 +6,27 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           lfs: true
 
-      - name: Run Build inside Unity Container
-        # Используем образ, который точно скачается
-        run: |
-          docker run --rm \
-            -v $(pwd):/project \
-            unityci/editor:ubuntu-2022.3.7f1-android-3 \
-            bash -c "unity-editor \
-              -batchmode \
-              -nographics \
-              -projectPath /project \
-              -buildTarget Android \
-              -buildAndroidPlayer /project/StandKnife.apk \
-              -quit \
-              -logFile /dev/stdout"
+      - name: Build
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          # Мы не используем UNITY_LICENSE, пробуем прорваться через логин
+        with:
+          targetPlatform: Android
+          androidAppBundle: false
+          # Указываем версию явно, чтобы он не искал её сам
+          unityVersion: 2022.3.7f1 
+          # Если проект лежит не в корне, укажи папку тут (например, unity-project)
+          projectPath: . 
 
-      - name: Search and Upload APK
-        if: always() # Загрузить даже если были ошибки
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: StandKnife-APK
-          path: ./*.apk
-          name: StandKnife-Hacker-APK
-          path: ./*.apk
+          path: build/Android/*.apk
