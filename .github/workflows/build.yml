@@ -12,7 +12,7 @@ jobs:
           lfs: true
 
       - name: Run Build inside Unity Container
-        # Этот образ открыт и доступен всегда!
+        # Используем образ, который точно скачается
         run: |
           docker run --rm \
             -v $(pwd):/project \
@@ -22,17 +22,15 @@ jobs:
               -nographics \
               -projectPath /project \
               -buildTarget Android \
-              -customBuildName StandKnife \
-              -executeMethod UnityBuilder.Build \
+              -buildAndroidPlayer /project/StandKnife.apk \
               -quit \
-              -logFile /dev/stdout" || true
+              -logFile /dev/stdout"
 
       - name: Search and Upload APK
+        if: always() # Загрузить даже если были ошибки
         uses: actions/upload-artifact@v4
         with:
           name: StandKnife-APK
-          path: "**/*.apk"
-        uses: actions/upload-artifact@v4
-        with:
+          path: ./*.apk
           name: StandKnife-Hacker-APK
           path: ./*.apk
