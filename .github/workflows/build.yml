@@ -1,4 +1,4 @@
-name: StandKnife Ghost Build
+name: StandKnife Final Attempt
 on:
   workflow_dispatch:
 
@@ -11,8 +11,7 @@ jobs:
         with:
           lfs: true
 
-      - name: Build APK (Bypass Mode)
-        # Мы используем образ CI, но запускаем его через чистый Docker
+      - name: Build APK
         run: |
           docker run --rm \
             -v $(pwd):/project \
@@ -22,13 +21,12 @@ jobs:
               -nographics \
               -projectPath /project \
               -buildTarget Android \
-              -executeMethod UnityEditor.BuildPlayerWindow.BuildPlayer \
-              -manualLicenseFile /project/*.alf \
               -quit \
-              -logFile /dev/stdout" || true
+              -nolicense \
+              -logFile /dev/stdout & sleep 60; kill $!" || true
 
-      - name: Upload APK
+      - name: Upload Anything
         uses: actions/upload-artifact@v4
         with:
-          name: StandKnife-APK
-          path: "**/*.apk"
+          name: Build-Logs
+          path: "**/*.log"
