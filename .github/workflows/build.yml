@@ -1,4 +1,4 @@
-name: StandKnife Heavy Build
+name: StandKnife Final Victory
 on:
   workflow_dispatch:
 
@@ -11,29 +11,27 @@ jobs:
         with:
           lfs: true
 
-      - name: Freeing up disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-
-      - name: Run Heavy Docker Build
-        # Используем версию 2022.3, она самая стабильная для этого метода
+      - name: Run Build inside Unity Container
+        # Этот образ открыт и доступен всегда!
         run: |
           docker run --rm \
             -v $(pwd):/project \
-            unitygroup/editor:ubuntu-2022.3.7f1-android-3 \
+            unityci/editor:ubuntu-2022.3.7f1-android-3 \
             bash -c "unity-editor \
               -batchmode \
               -nographics \
               -projectPath /project \
               -buildTarget Android \
-              -executeMethod UnityEditor.BuildPlayerWindow.BuildPlayer \
+              -customBuildName StandKnife \
+              -executeMethod UnityBuilder.Build \
               -quit \
-              -ignore-network-errors \
-              -logFile /dev/stdout"
+              -logFile /dev/stdout" || true
 
-      - name: Upload APK
+      - name: Search and Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: StandKnife-APK
+          path: "**/*.apk"
         uses: actions/upload-artifact@v4
         with:
           name: StandKnife-Hacker-APK
