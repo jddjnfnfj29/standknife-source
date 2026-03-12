@@ -1,45 +1,40 @@
-name: StandKnife Build APK
-
+name: StandKnife Heavy Build
 on:
-  workflow_dispatch: # Запуск вручную кнопкой Run workflow
+  workflow_dispatch:
 
 jobs:
   build:
-    name: Build My Game 🚀
     runs-on: ubuntu-latest
     steps:
-      # 1. Забираем код из твоего репозитория
-      - name: Checkout Repository
+      - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          lfs: true # Важно для Unity, чтобы скачались тяжелые ассеты
+          lfs: true
 
-      # 2. Кэширование (чтобы билд шел быстрее в следующий раз)
-      - name: Cache Library
-        uses: actions/cache@v4
-        with:
-          path: Library
-          key: Library-StandKnife-Android
-          restore-keys: |
-            Library-StandKnife-
+      - name: Freeing up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
 
-      # 3. Сама сборка (Имитируем вход через Unity Hub)
-      - name: Build Android APK
-        uses: game-ci/unity-builder@v4
-        env:
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          targetPlatform: Android
-          # Если хочешь обычный APK, а не бандл для Google Play
-          androidAppBundle: false 
-          # Указываем версию Unity (должна совпадать с твоим проектом)
-          # Если не знаешь точно, оставь эту или поменяй на свою
-          unityVersion: 2022.3.7f1 
+      - name: Run Heavy Docker Build
+        # Используем версию 2022.3, она самая стабильная для этого метода
+        run: |
+          docker run --rm \
+            -v $(pwd):/project \
+            unitygroup/editor:ubuntu-2022.3.7f1-android-3 \
+            bash -c "unity-editor \
+              -batchmode \
+              -nographics \
+              -projectPath /project \
+              -buildTarget Android \
+              -executeMethod UnityEditor.BuildPlayerWindow.BuildPlayer \
+              -quit \
+              -ignore-network-errors \
+              -logFile /dev/stdout"
 
-      # 4. Сохранение готового файла
-      - name: Upload APK Artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: StandKnife-Release-APK
-          path: build/Android/*.apk
+          name: StandKnife-Hacker-APK
+          path: ./*.apk
