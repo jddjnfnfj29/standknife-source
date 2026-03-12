@@ -1,26 +1,45 @@
-name: StandKnife-Build
-on: workflow_dispatch
+name: StandKnife Build APK
+
+on:
+  workflow_dispatch: # Запуск вручную кнопкой Run workflow
+
 jobs:
   build:
+    name: Build My Game 🚀
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      # 1. Забираем код из твоего репозитория
+      - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          lfs: true # Важно для Unity, чтобы скачались тяжелые ассеты
 
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@v1.3.1
+      # 2. Кэширование (чтобы билд шел быстрее в следующий раз)
+      - name: Cache Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-StandKnife-Android
+          restore-keys: |
+            Library-StandKnife-
 
-      - name: Build Android
+      # 3. Сама сборка (Имитируем вход через Unity Hub)
+      - name: Build Android APK
         uses: game-ci/unity-builder@v4
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: Android
-          androidAppBundle: false
+          # Если хочешь обычный APK, а не бандл для Google Play
+          androidAppBundle: false 
+          # Указываем версию Unity (должна совпадать с твоим проектом)
+          # Если не знаешь точно, оставь эту или поменяй на свою
+          unityVersion: 2022.3.7f1 
 
-      - name: Upload APK
+      # 4. Сохранение готового файла
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: StandKnife-Release
+          name: StandKnife-Release-APK
           path: build/Android/*.apk
